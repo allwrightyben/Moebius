@@ -298,12 +298,22 @@ VkRenderPass createRenderPass(VkDevice device, VkFormat swapChainImageFormat){
     //The index of the attachment in this array is directly referenced from the fragment shader 
     //with the layout(location = 0) out vec4 outColor directive!
 
+    VkSubpassDependency dependency{};
+    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+    dependency.dstSubpass = 0;
+    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.srcAccessMask = 0;
+    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
     VkRenderPassCreateInfo renderPassInfo{};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
     renderPassInfo.attachmentCount = 1;
     renderPassInfo.pAttachments = &colorAttachment;
     renderPassInfo.subpassCount = 1;
     renderPassInfo.pSubpasses = &subpass;
+    renderPassInfo.dependencyCount = 1;
+    renderPassInfo.pDependencies = &dependency;
 
     VkRenderPass renderPass;
     if(vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS){
@@ -639,7 +649,8 @@ void drawFrame(
     VkCommandBuffer commandBuffer, 
     VkRenderPass renderPass,
     VkFramebuffer *swapchainFramebuffers,
-    VkPipeline graphicsPipeline
+    VkPipeline graphicsPipeline,
+    VkQueue graphicsQueue
 ){
     vkWaitForFences(device, 1, &syncObjects.inFlightFence, VK_TRUE, UINT64_MAX);
     vkResetFences(device, 1, &syncObjects.inFlightFence);
@@ -649,6 +660,33 @@ void drawFrame(
     
     vkResetCommandBuffer(commandBuffer, 0);
     recordCommandBuffer(commandBuffer, renderPass, swapchainFramebuffers, swapchainImageIndex, swapchainExtent, graphicsPipeline);
+
+    VkSubmitInfo submitInfo{};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.waitSemaphoreCount = 1;
+    submitInfo.pWaitSemaphores = &syncObjects.imageAvailableSemaphore;
+    VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+    submitInfo.pWaitDstStageMask = waitStages;
+    //Each entry in the waitStages array corresponds to the semaphore with the same index in pWaitSemaphores.
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &commandBuffer;
+    submitInfo.signalSemaphoreCount = 1;
+    submitInfo.pSignalSemaphores = &syncObjects.renderFinishedSemaphore;
+
+    if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, syncObjects.inFlightFence) != VK_SUCCESS) {
+        printf("Failed to submit to Graphics Queue!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    VkPresentInfoKHR presentInfo{};
+    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    presentInfo.waitSemaphoreCount = 1;
+    presentInfo.pWaitSemaphores = &syncObjects.renderFinishedSemaphore;
+    presentInfo.swapchainCount = 1;
+    presentInfo.pSwapchains = &swapchain;
+    presentInfo.pImageIndices = &swapchainImageIndex;
+
+    vkQueuePresentKHR(graphicsQueue, &presentInfo);
 }
 
 int main(int, char**) {
@@ -712,11 +750,11 @@ int main(int, char**) {
 
     while(!glfwWindowShouldClose(window)) {
         glfwPollEvents();
-        drawFrame();
+        drawFrame(device, syncObjects, swapchain, swapchainExtent, commandBuffer, renderPass, swapchainFramebuffers, graphicsPipeline, graphicsQueue);
     }
 
-    glfwDestroyWindow(window);
-    glfwTerminate();
+    vkDeviceWaitIdle(device);
+
     vkDestroySemaphore(device, syncObjects.imageAvailableSemaphore, nullptr);
     vkDestroySemaphore(device, syncObjects.renderFinishedSemaphore, nullptr);
     vkDestroyFence(device, syncObjects.inFlightFence, nullptr);
@@ -724,7 +762,6 @@ int main(int, char**) {
     for(int i = 0; i < swapchainImageCount; i++){
         vkDestroyFramebuffer(device, swapchainFramebuffers[i], nullptr);
         vkDestroyImageView(device, swapchainImageViews[i], nullptr);
-        vkDestroyImage(device, swapchainImages[i], nullptr);
     }
     free(swapchainFramebuffers);
     free(swapchainImageViews);
@@ -736,6 +773,9 @@ int main(int, char**) {
     vkDestroyDevice(device, nullptr);
     vkDestroySurfaceKHR(instance, surface, nullptr);
     vkDestroyInstance(instance, nullptr);
+
+    glfwDestroyWindow(window);
+    glfwTerminate();
 
     return 0;
 }
