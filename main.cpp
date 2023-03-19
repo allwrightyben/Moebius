@@ -498,10 +498,10 @@ VkImageView* createImageViews(
     return imageViews;
 }
 
-VkFramebuffer* createFramebuffers(VkDevice device, VkImageView* swapchainImageViews, int swapchainImageViewCount, VkRenderPass renderPass, VkExtent2D swapchainExtent){
-    VkFramebuffer* swapchainFramebuffers = (VkFramebuffer*)malloc(sizeof(VkFramebuffer)*swapchainImageViewCount);
+VkFramebuffer* createFramebuffers(VkDevice device, VkImageView* swapchainImageViews, int swapchainImageCount, VkRenderPass renderPass, VkExtent2D swapchainExtent){
+    VkFramebuffer* swapchainFramebuffers = (VkFramebuffer*)malloc(sizeof(VkFramebuffer)*swapchainImageCount);
 
-    for(int i = 0; i < swapchainImageViewCount; i++){
+    for(int i = 0; i < swapchainImageCount; i++){
         VkFramebufferCreateInfo framebufferInfo{};
         framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
         framebufferInfo.renderPass = renderPass;
@@ -606,10 +606,6 @@ void recordCommandBuffer(
     }
 }
 
-void drawFrame(){
-
-}
-
 struct SynchronisationObjects{
     VkSemaphore imageAvailableSemaphore;
     VkSemaphore renderFinishedSemaphore;
@@ -623,6 +619,7 @@ SynchronisationObjects createSyncObjects(VkDevice device){
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
     VkFenceCreateInfo fenceInfo{};
     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
     if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &sync.imageAvailableSemaphore) != VK_SUCCESS ||
     vkCreateSemaphore(device, &semaphoreInfo, nullptr, &sync.renderFinishedSemaphore) != VK_SUCCESS ||
@@ -632,6 +629,26 @@ SynchronisationObjects createSyncObjects(VkDevice device){
     }
 
     return sync;
+}
+
+void drawFrame(
+    VkDevice device, 
+    SynchronisationObjects syncObjects, 
+    VkSwapchainKHR swapchain, 
+    VkExtent2D swapchainExtent,
+    VkCommandBuffer commandBuffer, 
+    VkRenderPass renderPass,
+    VkFramebuffer *swapchainFramebuffers,
+    VkPipeline graphicsPipeline
+){
+    vkWaitForFences(device, 1, &syncObjects.inFlightFence, VK_TRUE, UINT64_MAX);
+    vkResetFences(device, 1, &syncObjects.inFlightFence);
+
+    uint32_t swapchainImageIndex;
+    vkAcquireNextImageKHR(device, swapchain, UINT64_MAX, syncObjects.imageAvailableSemaphore, VK_NULL_HANDLE, &swapchainImageIndex);
+    
+    vkResetCommandBuffer(commandBuffer, 0);
+    recordCommandBuffer(commandBuffer, renderPass, swapchainFramebuffers, swapchainImageIndex, swapchainExtent, graphicsPipeline);
 }
 
 int main(int, char**) {
