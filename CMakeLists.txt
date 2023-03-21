@@ -14,6 +14,7 @@ target_link_libraries(moebius PRIVATE
     Vulkan::Vulkan
 )
 
+add_subdirectory(src)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
