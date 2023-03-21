@@ -1,6 +1,7 @@
 target_sources(moebius PRIVATE
     init.cpp
     io.cpp
+    draw.cpp
 )
 
 target_include_directories(moebius PRIVATE
