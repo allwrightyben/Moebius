@@ -42,4 +42,6 @@ VkImageView* createImageViews(
 VkFramebuffer* createFramebuffers(VkDevice device, VkImageView* swapchainImageViews, int swapchainImageCount, VkRenderPass renderPass, VkExtent2D swapchainExtent);
 VkCommandPool createCommandPool(VkDevice device, QueueFamilyIndices *queueFamilyIndices);
 VkCommandBuffer createCommandBuffer(VkDevice device, VkCommandPool commandPool);
+void createCommandBuffers(VkDevice device, VkCommandPool commandPool, int commandBuffersSize, VkCommandBuffer* commandBuffers);
 SynchronisationObjects createSyncObjects(VkDevice device);
+void destroySwapchain(VkDevice device, uint32_t swapchainImageCount, VkImageView* swapchainImageViews, VkFramebuffer* swapchainFramebuffers, VkSwapchainKHR swapchain);

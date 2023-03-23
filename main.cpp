@@ -8,7 +8,7 @@
 #include "draw.h"
 
 const uint32_t WIDTH = 800;
-const uint32_t HEIGHT = 800;
+const uint32_t HEIGHT = 600;
 
 #ifdef NDEBUG
     const bool ENABLE_VALIDATION_LAYERS = false;
@@ -19,6 +19,8 @@ const uint32_t HEIGHT = 800;
 const char* DEVICE_EXTENSIONS[] = {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
+
+const int MAX_FRAMES_IN_FLIGHT = 2;
 
 struct VulkanObjects{
     VkInstance instance;
@@ -42,13 +44,15 @@ struct VulkanObjects{
     VkPipeline graphicsPipeline;
     VkFramebuffer* swapchainFramebuffers;
     VkCommandPool commandPool;
-    VkCommandBuffer commandBuffer;
-    SynchronisationObjects syncObjects;
+    VkCommandBuffer commandBuffers[MAX_FRAMES_IN_FLIGHT];
+    SynchronisationObjects syncObjects[MAX_FRAMES_IN_FLIGHT];
 
     void cleanUp(){
-        vkDestroySemaphore(device, syncObjects.imageAvailableSemaphore, nullptr);
-        vkDestroySemaphore(device, syncObjects.renderFinishedSemaphore, nullptr);
-        vkDestroyFence(device, syncObjects.inFlightFence, nullptr);
+        for(int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++){
+            vkDestroySemaphore(device, syncObjects[i].imageAvailableSemaphore, nullptr);
+            vkDestroySemaphore(device, syncObjects[i].renderFinishedSemaphore, nullptr);
+            vkDestroyFence(device, syncObjects[i].inFlightFence, nullptr);
+        }
         vkDestroyCommandPool(device, commandPool, nullptr);
         for(int i = 0; i < swapchainImageCount; i++){
             vkDestroyFramebuffer(device, swapchainFramebuffers[i], nullptr);
@@ -116,25 +120,31 @@ int main(int, char**) {
     vko.swapchainFramebuffers = createFramebuffers(vko.device, vko.swapchainImageViews, vko.swapchainImageCount, vko.renderPass, vko.swapchainExtent);
 
     vko.commandPool = createCommandPool(vko.device, &vko.queueFamilyIndices);
-    vko.commandBuffer = createCommandBuffer(vko.device, vko.commandPool);
+    createCommandBuffers(vko.device, vko.commandPool, MAX_FRAMES_IN_FLIGHT, vko.commandBuffers);
 
-    vko.syncObjects = createSyncObjects(vko.device);
+    for(int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++){
+        vko.syncObjects[i] = createSyncObjects(vko.device);
+    }
 
     printf("Successfully initialised Vulkan.\n");
+
+    uint32_t currentFrame = 0;
 
     while(!glfwWindowShouldClose(window)) {
         glfwPollEvents();
         drawFrame(
             vko.device, 
-            vko.syncObjects, 
+            vko.syncObjects[currentFrame], 
             vko.swapchain, 
             vko.swapchainExtent, 
-            vko.commandBuffer, 
+            vko.commandBuffers[currentFrame], 
             vko.renderPass, 
             vko.swapchainFramebuffers, 
             vko.graphicsPipeline, 
             vko.graphicsQueue
         );
+
+        currentFrame = 1 - currentFrame;
     }
 
     vkDeviceWaitIdle(vko.device);

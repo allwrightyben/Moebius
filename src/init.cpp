@@ -499,6 +499,19 @@ VkCommandBuffer createCommandBuffer(VkDevice device, VkCommandPool commandPool){
     return commandBuffer;
 }
 
+void createCommandBuffers(VkDevice device, VkCommandPool commandPool, int commandBuffersSize, VkCommandBuffer* commandBuffers){
+    VkCommandBufferAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.commandPool = commandPool;
+    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandBufferCount = commandBuffersSize;
+
+    if(vkAllocateCommandBuffers(device, &allocInfo, commandBuffers) != VK_SUCCESS){
+        printf("Failed to Allocate Command Buffer!\n");
+        exit(EXIT_FAILURE);
+    }
+}
+
 SynchronisationObjects createSyncObjects(VkDevice device){
     SynchronisationObjects sync{};
 
@@ -516,4 +529,54 @@ SynchronisationObjects createSyncObjects(VkDevice device){
     }
 
     return sync;
+}
+
+void destroySwapchain(
+    VkDevice device, 
+    uint32_t swapchainImageCount, 
+    VkImageView* swapchainImageViews, 
+    VkFramebuffer* swapchainFramebuffers, 
+    VkSwapchainKHR swapchain
+    ){
+    for(int i = 0; i < swapchainImageCount; i++){
+        vkDestroyFramebuffer(device, swapchainFramebuffers[i], nullptr);
+        vkDestroyImageView(device, swapchainImageViews[i], nullptr);
+    }
+    vkDestroySwapchainKHR(device, swapchain, nullptr);
+}
+
+void resizeSwapchain(
+    VkDevice device, 
+    VkPhysicalDevice physicalDevice,
+    VkSurfaceKHR surface, 
+    GLFWwindow *window, 
+    VkExtent2D newExtent,
+    VkSurfaceCapabilitiesKHR *capabilities, 
+    VkSurfaceFormatKHR surfaceFormat, 
+    VkPresentModeKHR presentMode,
+    VkRenderPass renderPass,
+    uint32_t swapchainImageCount,
+    VkImage* swapchainImages,
+    VkImageView* swapchainImageViews,
+    VkFramebuffer* swapchainFramebuffers,
+    VkSwapchainKHR* swapchain
+){
+    vkDeviceWaitIdle(device);
+
+    destroySwapchain(device, swapchainImageCount, swapchainImageViews, swapchainFramebuffers, *swapchain);
+
+    *swapchain = createSwapChain(
+        device, 
+        physicalDevice, 
+        surface, 
+        window, 
+        newExtent, 
+        capabilities, 
+        surfaceFormat, 
+        presentMode
+    );
+
+    vkGetSwapchainImagesKHR(device, *swapchain, &swapchainImageCount, swapchainImages);
+    swapchainImageViews = createImageViews(device, swapchainImages, swapchainImageCount, surfaceFormat);
+    swapchainFramebuffers = createFramebuffers(device, swapchainImageViews, swapchainImageCount, renderPass, newExtent);
 }
