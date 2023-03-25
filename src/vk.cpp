@@ -2,6 +2,8 @@
 #include <cstdlib>
 
 void VulkanObjects::cleanUp(){
+    vkDestroyBuffer(device, vertexBuffer, nullptr);
+    vkFreeMemory(device, vertexBufferMemory, nullptr);
     for(int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++){
         vkDestroySemaphore(device, syncObjects[i].imageAvailableSemaphore, nullptr);
         vkDestroySemaphore(device, syncObjects[i].renderFinishedSemaphore, nullptr);

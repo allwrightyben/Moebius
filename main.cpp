@@ -3,11 +3,13 @@
 #include <vulkan/vulkan.h>
 #include <cstdlib>
 #include <cstdio>
+#include <cstring>
 #include "window.h"
 #include "vk.h"
 #include "io.h"
 #include "initvk.h"
 #include "draw.h"
+#include "vertex.h"
 
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
@@ -68,16 +70,27 @@ int main(int, char**) {
 
     printf("Successfully initialised Vulkan.\n");
 
+    uint32_t verticesCount = 3;
+    Vertex vertices[verticesCount] = {
+        {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+        {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+        {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
+    };
+
+    vko.vertexBuffer = createVertexBuffer(vko.device, vertices, verticesCount);
+    vko.vertexBufferMemory = allocateVertexBuffer(vko.device, vko.physicalDevice, vko.vertexBuffer);
+
+    size_t vertexBufferSize = sizeof(Vertex)*verticesCount;
+    void *data;
+    vkMapMemory(vko.device, vko.vertexBufferMemory, 0, vertexBufferSize, 0, &data);
+    memcpy(data, vertices, vertexBufferSize);
+    vkUnmapMemory(vko.device, vko.vertexBufferMemory);
+
     uint32_t currentFrame = 0;
 
     while(!glfwWindowShouldClose(wo.window)) {
         glfwPollEvents();
-        drawFrame(
-            &vko,
-            currentFrame,
-            &wo
-        );
-
+        drawFrame(&vko, currentFrame, &wo, vertexBufferSize);
         currentFrame = 1 - currentFrame;
     }
 
@@ -88,5 +101,6 @@ int main(int, char**) {
     glfwDestroyWindow(wo.window);
     glfwTerminate();
 
+    printf("Successfully cleaned up.\n");
     return 0;
 }

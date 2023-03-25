@@ -11,11 +11,14 @@ void recordCommandBuffer(
     VkFramebuffer* swapChainFramebuffers, 
     uint32_t swapChainFramebuffersIndex,
     VkExtent2D swapChainExtent,
-    VkPipeline graphicsPipeline
+    VkPipeline graphicsPipeline,
+    VkBuffer vertexBuffer,
+    uint32_t verticesCount
 );
 
 void drawFrame(
     VulkanObjects *vko,
     uint32_t currentFrame,
-    WindowObjects *wo
+    WindowObjects *wo,
+    uint32_t verticesCount
 );

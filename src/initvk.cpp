@@ -5,6 +5,7 @@
 #include <algorithm>
 #include "io.h"
 #include "window.h"
+#include "vertex.h"
 
 VkInstance createVkInstance(bool validationLayersEnabled){
     VkInstance instance{};
@@ -307,10 +308,13 @@ VkPipeline createGraphicsPipeline(VkDevice device, VkPipelineLayout pipelineLayo
 
     VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertexInputInfo.vertexBindingDescriptionCount = 0;
-    vertexInputInfo.pVertexBindingDescriptions = nullptr; // Optional
-    vertexInputInfo.vertexAttributeDescriptionCount = 0;
-    vertexInputInfo.pVertexAttributeDescriptions = nullptr; // Optional
+    vertexInputInfo.vertexBindingDescriptionCount = 1;
+    VkVertexInputBindingDescription bindingDescription = getBindingDescription();
+    vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
+    uint32_t attrDescriptionsSize;
+    VkVertexInputAttributeDescription* attrDescriptions = getAttributeDescriptions(&attrDescriptionsSize);
+    vertexInputInfo.vertexAttributeDescriptionCount = attrDescriptionsSize;
+    vertexInputInfo.pVertexAttributeDescriptions = attrDescriptions;
 
     VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
     inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -393,6 +397,8 @@ VkPipeline createGraphicsPipeline(VkDevice device, VkPipelineLayout pipelineLayo
     free(fragShaderCode);
     vkDestroyShaderModule(device, fragShaderModule, nullptr);
     vkDestroyShaderModule(device, vertShaderModule, nullptr);
+
+    free(attrDescriptions);
 
     return pipeline;
 }

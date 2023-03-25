@@ -4,6 +4,7 @@ target_sources(moebius PRIVATE
     io.cpp
     draw.cpp
     window.cpp
+    vertex.cpp
 )
 
 target_include_directories(moebius PRIVATE
