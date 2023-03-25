@@ -4,6 +4,7 @@
 #include <vector>
 #include <algorithm>
 #include "io.h"
+#include "window.h"
 
 VkInstance createVkInstance(bool validationLayersEnabled){
     VkInstance instance{};
@@ -166,7 +167,7 @@ VkPresentModeKHR selectPresentMode(SwapChainSupport *support){
     exit(EXIT_FAILURE);
 }
 
-VkExtent2D selectSwapExtent(const VkSurfaceCapabilitiesKHR *capabilities, GLFWwindow *window){
+VkExtent2D selectSwapchainExtent(const VkSurfaceCapabilitiesKHR *capabilities, GLFWwindow *window){
     if(capabilities->currentExtent.width != UINT32_MAX){
         return capabilities->currentExtent;
     }
@@ -531,7 +532,7 @@ SynchronisationObjects createSyncObjects(VkDevice device){
     return sync;
 }
 
-void destroySwapchain(
+void destroySwapchainResources(
     VkDevice device, 
     uint32_t swapchainImageCount, 
     VkImageView* swapchainImageViews, 
@@ -545,38 +546,29 @@ void destroySwapchain(
     vkDestroySwapchainKHR(device, swapchain, nullptr);
 }
 
-void resizeSwapchain(
-    VkDevice device, 
-    VkPhysicalDevice physicalDevice,
-    VkSurfaceKHR surface, 
-    GLFWwindow *window, 
-    VkExtent2D newExtent,
-    VkSurfaceCapabilitiesKHR *capabilities, 
-    VkSurfaceFormatKHR surfaceFormat, 
-    VkPresentModeKHR presentMode,
-    VkRenderPass renderPass,
-    uint32_t swapchainImageCount,
-    VkImage* swapchainImages,
-    VkImageView* swapchainImageViews,
-    VkFramebuffer* swapchainFramebuffers,
-    VkSwapchainKHR* swapchain
-){
-    vkDeviceWaitIdle(device);
+void recreateSwapchainResources(
+    VulkanObjects *vko,
+    WindowObjects *wo
+    ){
+    vkDeviceWaitIdle(vko->device);
 
-    destroySwapchain(device, swapchainImageCount, swapchainImageViews, swapchainFramebuffers, *swapchain);
+    destroySwapchainResources(vko->device, vko->swapchainImageCount, vko->swapchainImageViews, vko->swapchainFramebuffers, vko->swapchain);
 
-    *swapchain = createSwapChain(
-        device, 
-        physicalDevice, 
-        surface, 
-        window, 
-        newExtent, 
-        capabilities, 
-        surfaceFormat, 
-        presentMode
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(vko->physicalDevice, vko->surface, &vko->capabilities);
+    vko->swapchainExtent = selectSwapchainExtent(&vko->capabilities, wo->window);
+
+    vko->swapchain = createSwapChain(
+        vko->device, 
+        vko->physicalDevice, 
+        vko->surface, 
+        wo->window, 
+        vko->swapchainExtent, 
+        &vko->capabilities, 
+        vko->surfaceFormat, 
+        vko->presentMode
     );
 
-    vkGetSwapchainImagesKHR(device, *swapchain, &swapchainImageCount, swapchainImages);
-    swapchainImageViews = createImageViews(device, swapchainImages, swapchainImageCount, surfaceFormat);
-    swapchainFramebuffers = createFramebuffers(device, swapchainImageViews, swapchainImageCount, renderPass, newExtent);
+    vkGetSwapchainImagesKHR(vko->device, vko->swapchain, &vko->swapchainImageCount, vko->swapchainImages);
+    vko->swapchainImageViews = createImageViews(vko->device, vko->swapchainImages, vko->swapchainImageCount, vko->surfaceFormat);
+    vko->swapchainFramebuffers = createFramebuffers(vko->device, vko->swapchainImageViews, vko->swapchainImageCount, vko->renderPass, vko->swapchainExtent);
 }

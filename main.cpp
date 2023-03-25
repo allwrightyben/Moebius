@@ -3,6 +3,8 @@
 #include <vulkan/vulkan.h>
 #include <cstdlib>
 #include <cstdio>
+#include "window.h"
+#include "vko.h"
 #include "io.h"
 #include "init.h"
 #include "draw.h"
@@ -20,78 +22,15 @@ const char* DEVICE_EXTENSIONS[] = {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
 
-const int MAX_FRAMES_IN_FLIGHT = 2;
-
-struct VulkanObjects{
-    VkInstance instance;
-    VkSurfaceKHR surface;
-    VkPhysicalDevice physicalDevice;
-    VkPhysicalDeviceProperties physicalDeviceProperties;
-    VkPhysicalDeviceFeatures physicalDeviceFeatures;
-    QueueFamilyIndices queueFamilyIndices;
-    VkDevice device;
-    VkQueue graphicsQueue;
-    VkQueue presentQueue;
-    VkSurfaceFormatKHR surfaceFormat;
-    VkPresentModeKHR presentMode;
-    VkExtent2D swapchainExtent;
-    VkSwapchainKHR swapchain;
-    VkImage* swapchainImages;
-    uint32_t swapchainImageCount;
-    VkImageView* swapchainImageViews;
-    VkRenderPass renderPass; 
-    VkPipelineLayout graphicsPipelineLayout;
-    VkPipeline graphicsPipeline;
-    VkFramebuffer* swapchainFramebuffers;
-    VkCommandPool commandPool;
-    VkCommandBuffer commandBuffers[MAX_FRAMES_IN_FLIGHT];
-    SynchronisationObjects syncObjects[MAX_FRAMES_IN_FLIGHT];
-
-    void cleanUp(){
-        for(int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++){
-            vkDestroySemaphore(device, syncObjects[i].imageAvailableSemaphore, nullptr);
-            vkDestroySemaphore(device, syncObjects[i].renderFinishedSemaphore, nullptr);
-            vkDestroyFence(device, syncObjects[i].inFlightFence, nullptr);
-        }
-        vkDestroyCommandPool(device, commandPool, nullptr);
-        for(int i = 0; i < swapchainImageCount; i++){
-            vkDestroyFramebuffer(device, swapchainFramebuffers[i], nullptr);
-            vkDestroyImageView(device, swapchainImageViews[i], nullptr);
-        }
-        free(swapchainFramebuffers);
-        free(swapchainImageViews);
-        free(swapchainImages);
-        vkDestroyPipeline(device, graphicsPipeline, nullptr);
-        vkDestroyPipelineLayout(device, graphicsPipelineLayout, nullptr);
-        vkDestroyRenderPass(device, renderPass, nullptr);
-        vkDestroySwapchainKHR(device, swapchain, nullptr);
-        vkDestroyDevice(device, nullptr);
-        vkDestroySurfaceKHR(instance, surface, nullptr);
-        vkDestroyInstance(instance, nullptr);
-    }
-};
-
 int main(int, char**) {
     printf("Hello World!\n");
 
-    if(!glfwInit()){
-        printf("GLFW Init failed!\n");
-        exit(EXIT_FAILURE);
-    }
-
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-    glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
-    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Moebius", nullptr, nullptr);
-    if(!window){
-        printf("GLFW window creation failed!\n");
-        exit(EXIT_FAILURE);
-    }
+    WindowObjects wo{};
+    initGLFWWindow(&wo, WIDTH, HEIGHT);
 
     VulkanObjects vko{};
     vko.instance = createVkInstance(ENABLE_VALIDATION_LAYERS);
-    vko.surface;
-    if(glfwCreateWindowSurface(vko.instance, window, nullptr, &vko.surface) != VK_SUCCESS){
+    if(glfwCreateWindowSurface(vko.instance, wo.window, nullptr, &vko.surface) != VK_SUCCESS){
         printf("Failed to create a Window Surface!");
         exit(EXIT_FAILURE);
     }
@@ -103,10 +42,11 @@ int main(int, char**) {
     vkGetDeviceQueue(vko.device, vko.queueFamilyIndices.graphics, 0, &vko.graphicsQueue);
     vkGetDeviceQueue(vko.device, vko.queueFamilyIndices.present, 0, &vko.presentQueue);
     SwapChainSupport swapChainSupport = querySwapChainSupport(vko.physicalDevice, vko.surface);
+    vko.capabilities = swapChainSupport.capabilities;
     vko.surfaceFormat = selectSurfaceFormat(&swapChainSupport);
     vko.presentMode = selectPresentMode(&swapChainSupport);
-    vko.swapchainExtent = selectSwapExtent(&swapChainSupport.capabilities, window);
-    vko.swapchain = createSwapChain(vko.device, vko.physicalDevice, vko.surface, window, vko.swapchainExtent, &swapChainSupport.capabilities, vko.surfaceFormat, vko.presentMode);
+    vko.swapchainExtent = selectSwapchainExtent(&swapChainSupport.capabilities, wo.window);
+    vko.swapchain = createSwapChain(vko.device, vko.physicalDevice, vko.surface, wo.window, vko.swapchainExtent, &swapChainSupport.capabilities, vko.surfaceFormat, vko.presentMode);
 
     vkGetSwapchainImagesKHR(vko.device, vko.swapchain, &vko.swapchainImageCount, nullptr);
     vko.swapchainImages = (VkImage*)malloc(sizeof(VkImage)*vko.swapchainImageCount);
@@ -130,18 +70,12 @@ int main(int, char**) {
 
     uint32_t currentFrame = 0;
 
-    while(!glfwWindowShouldClose(window)) {
+    while(!glfwWindowShouldClose(wo.window)) {
         glfwPollEvents();
         drawFrame(
-            vko.device, 
-            vko.syncObjects[currentFrame], 
-            vko.swapchain, 
-            vko.swapchainExtent, 
-            vko.commandBuffers[currentFrame], 
-            vko.renderPass, 
-            vko.swapchainFramebuffers, 
-            vko.graphicsPipeline, 
-            vko.graphicsQueue
+            &vko,
+            currentFrame,
+            &wo
         );
 
         currentFrame = 1 - currentFrame;
@@ -151,7 +85,7 @@ int main(int, char**) {
 
     vko.cleanUp();
 
-    glfwDestroyWindow(window);
+    glfwDestroyWindow(wo.window);
     glfwTerminate();
 
     return 0;

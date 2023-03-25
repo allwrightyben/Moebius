@@ -1,5 +1,8 @@
 #pragma once
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
+#include "window.h"
 #include "init.h"
 
 void recordCommandBuffer(
@@ -12,13 +15,7 @@ void recordCommandBuffer(
 );
 
 void drawFrame(
-    VkDevice device, 
-    SynchronisationObjects syncObjects, 
-    VkSwapchainKHR swapchain, 
-    VkExtent2D swapchainExtent,
-    VkCommandBuffer commandBuffer, 
-    VkRenderPass renderPass,
-    VkFramebuffer *swapchainFramebuffers,
-    VkPipeline graphicsPipeline,
-    VkQueue graphicsQueue
+    VulkanObjects *vko,
+    uint32_t currentFrame,
+    WindowObjects *wo
 );

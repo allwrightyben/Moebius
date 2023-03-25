@@ -2,17 +2,8 @@
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
 #include <vector>
-
-struct QueueFamilyIndices{
-    uint32_t graphics = UINT32_MAX;
-    uint32_t present = UINT32_MAX;
-};
-
-struct SynchronisationObjects{
-    VkSemaphore imageAvailableSemaphore;
-    VkSemaphore renderFinishedSemaphore;
-    VkFence inFlightFence;
-};
+#include "vko.h"
+#include "window.h"
 
 struct SwapChainSupport {
     VkSurfaceCapabilitiesKHR capabilities;
@@ -27,7 +18,7 @@ VkDevice createLogicalDevice(VkPhysicalDevice physicalDevice, QueueFamilyIndices
 SwapChainSupport querySwapChainSupport(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
 VkSurfaceFormatKHR selectSurfaceFormat(SwapChainSupport *support);
 VkPresentModeKHR selectPresentMode(SwapChainSupport *support);
-VkExtent2D selectSwapExtent(const VkSurfaceCapabilitiesKHR *capabilities, GLFWwindow *window);
+VkExtent2D selectSwapchainExtent(const VkSurfaceCapabilitiesKHR *capabilities, GLFWwindow *window);
 VkSwapchainKHR createSwapChain(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, GLFWwindow *window, VkExtent2D extent, VkSurfaceCapabilitiesKHR *capabilities, VkSurfaceFormatKHR surfaceFormat, VkPresentModeKHR presentMode);
 VkShaderModule createShaderModule(VkDevice device, char* code, size_t codeSize);
 VkRenderPass createRenderPass(VkDevice device, VkFormat swapChainImageFormat);
@@ -44,4 +35,8 @@ VkCommandPool createCommandPool(VkDevice device, QueueFamilyIndices *queueFamily
 VkCommandBuffer createCommandBuffer(VkDevice device, VkCommandPool commandPool);
 void createCommandBuffers(VkDevice device, VkCommandPool commandPool, int commandBuffersSize, VkCommandBuffer* commandBuffers);
 SynchronisationObjects createSyncObjects(VkDevice device);
-void destroySwapchain(VkDevice device, uint32_t swapchainImageCount, VkImageView* swapchainImageViews, VkFramebuffer* swapchainFramebuffers, VkSwapchainKHR swapchain);
+void destroySwapchainResources(VkDevice device, uint32_t swapchainImageCount, VkImageView* swapchainImageViews, VkFramebuffer* swapchainFramebuffers, VkSwapchainKHR swapchain);
+void recreateSwapchainResources(
+    VulkanObjects *vko,
+    WindowObjects *wo
+);

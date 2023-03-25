@@ -1,6 +1,7 @@
 #include "draw.h"
 #include <cstdio>
 #include <cstdlib>
+#include <GLFW/glfw3.h>
 
 void recordCommandBuffer(
     VkCommandBuffer commandBuffer, 
@@ -72,7 +73,7 @@ void drawFrame(
     vkResetFences(device, 1, &syncObjects.inFlightFence);
 
     uint32_t swapchainImageIndex;
-    vkAcquireNextImageKHR(device, swapchain, UINT64_MAX, syncObjects.imageAvailableSemaphore, VK_NULL_HANDLE, &swapchainImageIndex);
+    VkResult result = vkAcquireNextImageKHR(device, swapchain, UINT64_MAX, syncObjects.imageAvailableSemaphore, VK_NULL_HANDLE, &swapchainImageIndex);
     
     vkResetCommandBuffer(commandBuffer, 0);
     recordCommandBuffer(commandBuffer, renderPass, swapchainFramebuffers, swapchainImageIndex, swapchainExtent, graphicsPipeline);
@@ -103,4 +104,56 @@ void drawFrame(
     presentInfo.pImageIndices = &swapchainImageIndex;
 
     vkQueuePresentKHR(graphicsQueue, &presentInfo);
+}
+
+void drawFrame(
+    VulkanObjects *vko,
+    uint32_t currentFrame,
+    WindowObjects *wo
+){
+    vkWaitForFences(vko->device, 1, &vko->syncObjects[currentFrame].inFlightFence, VK_TRUE, UINT64_MAX);
+
+    uint32_t swapchainImageIndex;
+    VkResult result = vkAcquireNextImageKHR(vko->device, vko->swapchain, UINT64_MAX, vko->syncObjects[currentFrame].imageAvailableSemaphore, VK_NULL_HANDLE, &swapchainImageIndex);
+
+    if(result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || wo->framebufferResized){
+        wo->framebufferResized = false;
+        recreateSwapchainResources(vko, wo);
+    }
+    else if (result != VK_SUCCESS){
+        printf("Failed to acquire Next Swapchain Image!\n");
+        exit(EXIT_FAILURE);
+    }
+    else{
+        vkResetFences(vko->device, 1, &vko->syncObjects[currentFrame].inFlightFence);//Only reset if we are submitting work
+        vkResetCommandBuffer(vko->commandBuffers[currentFrame], 0);
+        recordCommandBuffer(vko->commandBuffers[currentFrame], vko->renderPass, vko->swapchainFramebuffers, swapchainImageIndex, vko->swapchainExtent, vko->graphicsPipeline);
+
+        VkSubmitInfo submitInfo{};
+        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submitInfo.waitSemaphoreCount = 1;
+        submitInfo.pWaitSemaphores = &vko->syncObjects[currentFrame].imageAvailableSemaphore;
+        VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+        submitInfo.pWaitDstStageMask = waitStages;
+        //Each entry in the waitStages array corresponds to the semaphore with the same index in pWaitSemaphores.
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = &vko->commandBuffers[currentFrame];
+        submitInfo.signalSemaphoreCount = 1;
+        submitInfo.pSignalSemaphores = &vko->syncObjects[currentFrame].renderFinishedSemaphore;
+
+        if (vkQueueSubmit(vko->graphicsQueue, 1, &submitInfo, vko->syncObjects[currentFrame].inFlightFence) != VK_SUCCESS) {
+            printf("Failed to submit to Graphics Queue!\n");
+            exit(EXIT_FAILURE);
+        }
+
+        VkPresentInfoKHR presentInfo{};
+        presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+        presentInfo.waitSemaphoreCount = 1;
+        presentInfo.pWaitSemaphores = &vko->syncObjects[currentFrame].renderFinishedSemaphore;
+        presentInfo.swapchainCount = 1;
+        presentInfo.pSwapchains = &vko->swapchain;
+        presentInfo.pImageIndices = &swapchainImageIndex;
+
+        vkQueuePresentKHR(vko->graphicsQueue, &presentInfo);
+    }
 }
