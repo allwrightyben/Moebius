@@ -44,3 +44,19 @@ struct VulkanObjects{
 
     void cleanUp();
 };
+
+uint32_t findMemoryType(
+    VkPhysicalDeviceMemoryProperties *memProperties, 
+    uint32_t typeFilter, 
+    VkMemoryPropertyFlags propertyFlags
+);
+
+void createBuffer(
+    VkDevice device, 
+    VkPhysicalDevice physicalDevice,
+    VkBufferUsageFlags usage, 
+    VkMemoryPropertyFlags properties,
+    VkDeviceSize bufferSize, 
+    VkBuffer *buffer, 
+    VkDeviceMemory *memory
+);

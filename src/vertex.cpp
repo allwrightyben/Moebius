@@ -1,5 +1,6 @@
 #include "vertex.h"
 #include <cstdio>
+#include "vk.h"
 
 VkVertexInputBindingDescription getBindingDescription(){
     VkVertexInputBindingDescription bindingDescription{};
@@ -25,20 +26,6 @@ VkVertexInputAttributeDescription* getAttributeDescriptions(uint32_t *attrDescri
     return attrDescriptions;
 }
 
-uint32_t findMemoryType(
-    VkPhysicalDeviceMemoryProperties *memProperties, 
-    uint32_t typeFilter, 
-    VkMemoryPropertyFlags propertyFlags
-    ) {
-    for (uint32_t i = 0; i < memProperties->memoryTypeCount; i++) {
-        if ((typeFilter & (1 << i)) && (memProperties->memoryTypes[i].propertyFlags & propertyFlags) == propertyFlags) {
-            return i;
-        }
-    } 
-
-    printf("No suitable GPU Memory Type found!\n");
-    exit(EXIT_FAILURE);
-}
 
 VkBuffer createVertexBuffer(VkDevice device, Vertex* vertices, uint32_t verticesSize){
     VkBufferCreateInfo bufferInfo{};

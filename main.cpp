@@ -77,11 +77,19 @@ int main(int, char**) {
         {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
     };
 
-    vko.vertexBuffer = createVertexBuffer(vko.device, vertices, verticesCount);
-    vko.vertexBufferMemory = allocateVertexBuffer(vko.device, vko.physicalDevice, vko.vertexBuffer);
-
     size_t vertexBufferSize = sizeof(Vertex)*verticesCount;
     void *data;
+
+    createBuffer(
+        vko.device,
+        vko.physicalDevice,
+        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        vertexBufferSize,
+        &vko.vertexBuffer,
+        &vko.vertexBufferMemory
+    );
+
     vkMapMemory(vko.device, vko.vertexBufferMemory, 0, vertexBufferSize, 0, &data);
     memcpy(data, vertices, vertexBufferSize);
     vkUnmapMemory(vko.device, vko.vertexBufferMemory);
