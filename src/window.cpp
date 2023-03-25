@@ -15,7 +15,7 @@ void initGLFWWindow(WindowObjects *wo, int width, int height){
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-    glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+    glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
 
     wo->window = glfwCreateWindow(width, height, "Moebius", nullptr, nullptr);
     if(wo->window == NULL){

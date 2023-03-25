@@ -2,6 +2,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <GLFW/glfw3.h>
+#include "vk.h"
+#include "initvk.h"
 
 void recordCommandBuffer(
     VkCommandBuffer commandBuffer, 

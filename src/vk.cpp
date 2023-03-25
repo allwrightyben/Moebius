@@ -1,4 +1,4 @@
-#include "vko.h"
+#include "vk.h"
 #include <cstdlib>
 
 void VulkanObjects::cleanUp(){

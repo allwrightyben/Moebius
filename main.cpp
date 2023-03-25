@@ -4,9 +4,9 @@
 #include <cstdlib>
 #include <cstdio>
 #include "window.h"
-#include "vko.h"
+#include "vk.h"
 #include "io.h"
-#include "init.h"
+#include "initvk.h"
 #include "draw.h"
 
 const uint32_t WIDTH = 800;

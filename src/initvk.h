@@ -2,7 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
 #include <vector>
-#include "vko.h"
+#include "vk.h"
 #include "window.h"
 
 struct SwapChainSupport {

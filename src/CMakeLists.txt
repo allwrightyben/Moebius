@@ -1,6 +1,6 @@
 target_sources(moebius PRIVATE
-    vko.cpp
-    init.cpp
+    vk.cpp
+    initvk.cpp
     io.cpp
     draw.cpp
     window.cpp

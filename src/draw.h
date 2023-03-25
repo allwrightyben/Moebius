@@ -3,7 +3,7 @@
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
 #include "window.h"
-#include "init.h"
+#include "vk.h"
 
 void recordCommandBuffer(
     VkCommandBuffer commandBuffer, 
