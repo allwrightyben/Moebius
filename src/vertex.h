@@ -10,5 +10,13 @@ struct Vertex{
 };
 VkVertexInputBindingDescription getBindingDescription();
 VkVertexInputAttributeDescription* getAttributeDescriptions(uint32_t *attrDescriptionsSize);
-VkBuffer createVertexBuffer(VkDevice device, Vertex* vertices, uint32_t verticesSize);
-VkDeviceMemory allocateVertexBuffer(VkDevice device, VkPhysicalDevice physicalDevice, VkBuffer vertexBuffer);
+void createVertexBuffer(
+    VkDevice device, 
+    VkPhysicalDevice physicalDevice,
+    VkCommandPool commandPool,
+    VkQueue transferQueue,
+    Vertex* vertices, 
+    uint32_t verticesSize,
+    VkBuffer *vertexBuffer,
+    VkDeviceMemory *vertexBufferMemory
+);

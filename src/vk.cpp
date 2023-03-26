@@ -58,7 +58,7 @@ void createBuffer(
     bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
     if(vkCreateBuffer(device, &bufferInfo, nullptr, buffer) != VK_SUCCESS){
-        printf("Failed to create Buffer of size %d bytes!\n", bufferSize);
+        printf("Failed to create Buffer of size %lu bytes!\n", bufferSize);
         exit(EXIT_FAILURE);
     }
 
@@ -82,4 +82,47 @@ void createBuffer(
     }
 
     vkBindBufferMemory(device, *buffer, *memory, 0);//If the offset is non-zero, then it is required to be divisible by memRequirements.alignment.
+}
+
+void copyBuffer(
+    VkDevice device,
+    VkCommandPool commandPool,
+    VkQueue transferQueue,
+    VkBuffer srcBuffer, 
+    VkBuffer dstBuffer, 
+    VkDeviceSize size
+    ){
+    
+    VkCommandBufferAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandPool = commandPool;
+    allocInfo.commandBufferCount = 1;
+
+    VkCommandBuffer commandBuffer;
+    vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer);
+
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+    vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+    VkBufferCopy copyRegion{};
+    copyRegion.srcOffset = 0;
+    copyRegion.dstOffset = 0;
+    copyRegion.size = size;
+    vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+
+    vkEndCommandBuffer(commandBuffer);
+
+    VkSubmitInfo submitInfo{};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &commandBuffer;
+
+    vkQueueSubmit(transferQueue, 1, &submitInfo, VK_NULL_HANDLE);
+    vkQueueWaitIdle(transferQueue);
+
+    vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
 }

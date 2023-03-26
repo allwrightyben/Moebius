@@ -1,5 +1,6 @@
 #include "vertex.h"
 #include <cstdio>
+#include <cstring>
 #include "vk.h"
 
 VkVertexInputBindingDescription getBindingDescription(){
@@ -27,45 +28,54 @@ VkVertexInputAttributeDescription* getAttributeDescriptions(uint32_t *attrDescri
 }
 
 
-VkBuffer createVertexBuffer(VkDevice device, Vertex* vertices, uint32_t verticesSize){
-    VkBufferCreateInfo bufferInfo{};
-    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    bufferInfo.size = sizeof(Vertex)*verticesSize;
-    bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+void createVertexBuffer(
+    VkDevice device, 
+    VkPhysicalDevice physicalDevice,
+    VkCommandPool commandPool,
+    VkQueue transferQueue,
+    Vertex* vertices, 
+    uint32_t verticesSize,
+    VkBuffer *vertexBuffer,
+    VkDeviceMemory *vertexBufferMemory
+    ){
+    VkDeviceSize bufferSize = sizeof(Vertex)*verticesSize;
 
-    VkBuffer vertexBuffer;
-    if(vkCreateBuffer(device, &bufferInfo, nullptr, &vertexBuffer) != VK_SUCCESS){
-        printf("Failed to create Vertex Buffer!\n");
-        exit(EXIT_FAILURE);
-    }
-
-    return vertexBuffer;
-}
-
-VkDeviceMemory allocateVertexBuffer(VkDevice device, VkPhysicalDevice physicalDevice, VkBuffer vertexBuffer){
-
-    VkMemoryRequirements memRequirements;
-    vkGetBufferMemoryRequirements(device, vertexBuffer, &memRequirements);
-    VkPhysicalDeviceMemoryProperties memProperties;
-    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
-
-    VkMemoryAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = findMemoryType(
-        &memProperties, 
-        memRequirements.memoryTypeBits, 
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    createBuffer(
+        device,
+        physicalDevice,
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        bufferSize,
+        &stagingBuffer,
+        &stagingBufferMemory
     );
 
-    VkDeviceMemory vertexBufferMemory;
-    if(vkAllocateMemory(device, &allocInfo, nullptr, &vertexBufferMemory)!=VK_SUCCESS){
-        printf("Failed to allocate Vertex Buffer Memory!\n");
-        exit(EXIT_FAILURE);
-    }
+    void* data;
+    vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
+    memcpy(data, vertices, bufferSize);
+    vkUnmapMemory(device, stagingBufferMemory);
 
-    vkBindBufferMemory(device, vertexBuffer, vertexBufferMemory, 0);//If the offset is non-zero, then it is required to be divisible by memRequirements.alignment.
+    createBuffer(
+        device, 
+        physicalDevice,
+        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        bufferSize,
+        vertexBuffer,
+        vertexBufferMemory
+    );
 
-    return vertexBufferMemory;
+    copyBuffer(
+        device,
+        commandPool,
+        transferQueue,
+        stagingBuffer,
+        *vertexBuffer,
+        bufferSize
+    );
+
+    vkDestroyBuffer(device, stagingBuffer, nullptr);
+    vkFreeMemory(device, stagingBufferMemory, nullptr);
 }

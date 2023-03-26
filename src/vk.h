@@ -60,3 +60,12 @@ void createBuffer(
     VkBuffer *buffer, 
     VkDeviceMemory *memory
 );
+
+void copyBuffer(
+    VkDevice device,
+    VkCommandPool commandPool,
+    VkQueue transferQueue,
+    VkBuffer srcBuffer, 
+    VkBuffer dstBuffer, 
+    VkDeviceSize size
+);

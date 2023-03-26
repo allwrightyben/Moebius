@@ -78,22 +78,18 @@ int main(int, char**) {
     };
 
     size_t vertexBufferSize = sizeof(Vertex)*verticesCount;
-    void *data;
-
-    createBuffer(
+    
+    createVertexBuffer(
         vko.device,
         vko.physicalDevice,
-        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        vertexBufferSize,
+        vko.commandPool,
+        vko.graphicsQueue,
+        vertices,
+        verticesCount,
         &vko.vertexBuffer,
         &vko.vertexBufferMemory
     );
-
-    vkMapMemory(vko.device, vko.vertexBufferMemory, 0, vertexBufferSize, 0, &data);
-    memcpy(data, vertices, vertexBufferSize);
-    vkUnmapMemory(vko.device, vko.vertexBufferMemory);
-
+    
     uint32_t currentFrame = 0;
 
     while(!glfwWindowShouldClose(wo.window)) {
