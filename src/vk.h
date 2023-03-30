@@ -37,6 +37,7 @@ struct VulkanObjects{
     VkPipeline graphicsPipeline;
     VkFramebuffer* swapchainFramebuffers;
     VkCommandPool commandPool;
+    VkCommandPool transientCommandPool;
     VkCommandBuffer commandBuffers[MAX_FRAMES_IN_FLIGHT];
     SynchronisationObjects syncObjects[MAX_FRAMES_IN_FLIGHT];
     VkBuffer vertexBuffer;

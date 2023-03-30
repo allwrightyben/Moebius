@@ -31,7 +31,7 @@ VkImageView* createImageViews(
     VkSurfaceFormatKHR surfaceFormat
     );
 VkFramebuffer* createFramebuffers(VkDevice device, VkImageView* swapchainImageViews, int swapchainImageCount, VkRenderPass renderPass, VkExtent2D swapchainExtent);
-VkCommandPool createCommandPool(VkDevice device, QueueFamilyIndices *queueFamilyIndices);
+VkCommandPool createCommandPool(VkDevice device, VkCommandPoolCreateFlags flags, QueueFamilyIndices *queueFamilyIndices);
 VkCommandBuffer createCommandBuffer(VkDevice device, VkCommandPool commandPool);
 void createCommandBuffers(VkDevice device, VkCommandPool commandPool, int commandBuffersSize, VkCommandBuffer* commandBuffers);
 SynchronisationObjects createSyncObjects(VkDevice device);

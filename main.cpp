@@ -61,7 +61,9 @@ int main(int, char**) {
 
     vko.swapchainFramebuffers = createFramebuffers(vko.device, vko.swapchainImageViews, vko.swapchainImageCount, vko.renderPass, vko.swapchainExtent);
 
-    vko.commandPool = createCommandPool(vko.device, &vko.queueFamilyIndices);
+    vko.commandPool = createCommandPool(vko.device, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, &vko.queueFamilyIndices);
+    vko.transientCommandPool = createCommandPool(vko.device, VK_COMMAND_POOL_CREATE_TRANSIENT_BIT, &vko.queueFamilyIndices);
+
     createCommandBuffers(vko.device, vko.commandPool, MAX_FRAMES_IN_FLIGHT, vko.commandBuffers);
 
     for(int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++){
@@ -82,7 +84,7 @@ int main(int, char**) {
     createVertexBuffer(
         vko.device,
         vko.physicalDevice,
-        vko.commandPool,
+        vko.transientCommandPool,
         vko.graphicsQueue,
         vertices,
         verticesCount,

@@ -475,10 +475,10 @@ VkFramebuffer* createFramebuffers(VkDevice device, VkImageView* swapchainImageVi
     return swapchainFramebuffers;
 }
 
-VkCommandPool createCommandPool(VkDevice device, QueueFamilyIndices *queueFamilyIndices){
+VkCommandPool createCommandPool(VkDevice device, VkCommandPoolCreateFlags flags, QueueFamilyIndices *queueFamilyIndices){
     VkCommandPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    poolInfo.flags = flags;
     poolInfo.queueFamilyIndex = queueFamilyIndices->graphics;
 
     VkCommandPool commandPool;
