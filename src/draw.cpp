@@ -13,7 +13,8 @@ void recordCommandBuffer(
     VkExtent2D swapChainExtent,
     VkPipeline graphicsPipeline,
     VkBuffer vertexBuffer,
-    uint32_t verticesCount
+    VkBuffer indexBuffer,
+    uint32_t indicesCount
 ){
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -42,6 +43,8 @@ void recordCommandBuffer(
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
+    vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+
     VkViewport viewport{};
     viewport.x = 0.0f;
     viewport.y = 0.0f;
@@ -56,7 +59,7 @@ void recordCommandBuffer(
     scissor.extent = swapChainExtent;
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-    vkCmdDraw(commandBuffer, verticesCount, 1, 0, 0);
+    vkCmdDrawIndexed(commandBuffer, indicesCount, 1, 0, 0, 0);
 
     vkCmdEndRenderPass(commandBuffer);
 
@@ -70,7 +73,7 @@ void drawFrame(
     VulkanObjects *vko,
     uint32_t currentFrame,
     WindowObjects *wo,
-    uint32_t verticesCount
+    uint32_t indicesCount
 ){
     vkWaitForFences(vko->device, 1, &vko->syncObjects[currentFrame].inFlightFence, VK_TRUE, UINT64_MAX);
 
@@ -88,7 +91,17 @@ void drawFrame(
     else{
         vkResetFences(vko->device, 1, &vko->syncObjects[currentFrame].inFlightFence);//Only reset if we are submitting work
         vkResetCommandBuffer(vko->commandBuffers[currentFrame], 0);
-        recordCommandBuffer(vko->commandBuffers[currentFrame], vko->renderPass, vko->swapchainFramebuffers, swapchainImageIndex, vko->swapchainExtent, vko->graphicsPipeline, vko->vertexBuffer, verticesCount);
+        recordCommandBuffer(
+            vko->commandBuffers[currentFrame], 
+            vko->renderPass, 
+            vko->swapchainFramebuffers, 
+            swapchainImageIndex, 
+            vko->swapchainExtent, 
+            vko->graphicsPipeline, 
+            vko->vertexBuffer,
+            vko->indexBuffer,
+            indicesCount
+        );
 
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;

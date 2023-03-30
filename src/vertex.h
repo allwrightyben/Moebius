@@ -20,3 +20,13 @@ void createVertexBuffer(
     VkBuffer *vertexBuffer,
     VkDeviceMemory *vertexBufferMemory
 );
+void createIndexBuffer(
+    VkDevice device, 
+    VkPhysicalDevice physicalDevice,
+    VkCommandPool transientCommandPool,
+    VkQueue transferQueue,
+    uint32_t* indices, 
+    uint32_t indicesSize,
+    VkBuffer *indexBuffer,
+    VkDeviceMemory *indexBufferMemory
+);

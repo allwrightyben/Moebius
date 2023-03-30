@@ -72,15 +72,17 @@ int main(int, char**) {
 
     printf("Successfully initialised Vulkan.\n");
 
-    uint32_t verticesCount = 3;
+    const uint32_t verticesCount = 4;
     Vertex vertices[verticesCount] = {
-        {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-        {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+        {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+        {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+        {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
         {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
     };
 
-    size_t vertexBufferSize = sizeof(Vertex)*verticesCount;
-    
+    const uint32_t indicesCount = 6;
+    uint32_t indices[indicesCount] = {0, 1, 2, 2, 3, 0};
+
     createVertexBuffer(
         vko.device,
         vko.physicalDevice,
@@ -91,12 +93,23 @@ int main(int, char**) {
         &vko.vertexBuffer,
         &vko.vertexBufferMemory
     );
+
+    createIndexBuffer(
+        vko.device,
+        vko.physicalDevice,
+        vko.transientCommandPool,
+        vko.graphicsQueue,
+        indices,
+        indicesCount,
+        &vko.indexBuffer,
+        &vko.indexBufferMemory
+    );
     
     uint32_t currentFrame = 0;
 
     while(!glfwWindowShouldClose(wo.window)) {
         glfwPollEvents();
-        drawFrame(&vko, currentFrame, &wo, vertexBufferSize);
+        drawFrame(&vko, currentFrame, &wo, indicesCount);
         currentFrame = 1 - currentFrame;
     }
 

@@ -5,12 +5,15 @@
 void VulkanObjects::cleanUp(){
     vkDestroyBuffer(device, vertexBuffer, nullptr);
     vkFreeMemory(device, vertexBufferMemory, nullptr);
+    vkDestroyBuffer(device, indexBuffer, nullptr);
+    vkFreeMemory(device, indexBufferMemory, nullptr);
     for(int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++){
         vkDestroySemaphore(device, syncObjects[i].imageAvailableSemaphore, nullptr);
         vkDestroySemaphore(device, syncObjects[i].renderFinishedSemaphore, nullptr);
         vkDestroyFence(device, syncObjects[i].inFlightFence, nullptr);
     }
     vkDestroyCommandPool(device, commandPool, nullptr);
+    vkDestroyCommandPool(device, transientCommandPool, nullptr);
     for(int i = 0; i < swapchainImageCount; i++){
         vkDestroyFramebuffer(device, swapchainFramebuffers[i], nullptr);
         vkDestroyImageView(device, swapchainImageViews[i], nullptr);

@@ -42,6 +42,8 @@ struct VulkanObjects{
     SynchronisationObjects syncObjects[MAX_FRAMES_IN_FLIGHT];
     VkBuffer vertexBuffer;
     VkDeviceMemory vertexBufferMemory;
+    VkBuffer indexBuffer;
+    VkDeviceMemory indexBufferMemory;
 
     void cleanUp();
 };
