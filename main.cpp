@@ -23,6 +23,16 @@ const uint32_t HEIGHT = 600;
 const char* DEVICE_EXTENSIONS[] = {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
+const uint32_t verticesCount = 4;
+Vertex vertices[verticesCount] = {
+    {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+    {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+    {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+    {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
+};
+
+const uint32_t indicesCount = 6;
+uint32_t indices[indicesCount] = {0, 1, 2, 2, 3, 0};
 
 int main(int, char**) {
     printf("Hello World!\n");
@@ -64,28 +74,20 @@ int main(int, char**) {
     vko.commandPool = createCommandPool(vko.device, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, &vko.queueFamilyIndices);
     vko.transientCommandPool = createCommandPool(vko.device, VK_COMMAND_POOL_CREATE_TRANSIENT_BIT, &vko.queueFamilyIndices);
 
+
     createCommandBuffers(vko.device, vko.commandPool, MAX_FRAMES_IN_FLIGHT, vko.commandBuffers);
 
     for(int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++){
         vko.syncObjects[i] = createSyncObjects(vko.device);
     }
 
+    vkGetPhysicalDeviceMemoryProperties(vko.physicalDevice, &vko.memProperties);
+
     printf("Successfully initialised Vulkan.\n");
-
-    const uint32_t verticesCount = 4;
-    Vertex vertices[verticesCount] = {
-        {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-        {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
-        {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
-        {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
-    };
-
-    const uint32_t indicesCount = 6;
-    uint32_t indices[indicesCount] = {0, 1, 2, 2, 3, 0};
 
     createVertexBuffer(
         vko.device,
-        vko.physicalDevice,
+        vko.memProperties,
         vko.transientCommandPool,
         vko.graphicsQueue,
         vertices,
@@ -96,7 +98,7 @@ int main(int, char**) {
 
     createIndexBuffer(
         vko.device,
-        vko.physicalDevice,
+        vko.memProperties,
         vko.transientCommandPool,
         vko.graphicsQueue,
         indices,

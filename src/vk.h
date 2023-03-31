@@ -40,6 +40,7 @@ struct VulkanObjects{
     VkCommandPool transientCommandPool;
     VkCommandBuffer commandBuffers[MAX_FRAMES_IN_FLIGHT];
     SynchronisationObjects syncObjects[MAX_FRAMES_IN_FLIGHT];
+    VkPhysicalDeviceMemoryProperties memProperties;
     VkBuffer vertexBuffer;
     VkDeviceMemory vertexBufferMemory;
     VkBuffer indexBuffer;
@@ -56,7 +57,7 @@ uint32_t findMemoryType(
 
 void createBuffer(
     VkDevice device, 
-    VkPhysicalDevice physicalDevice,
+    VkPhysicalDeviceMemoryProperties memProperties,
     VkBufferUsageFlags usage, 
     VkMemoryPropertyFlags properties,
     VkDeviceSize bufferSize, 

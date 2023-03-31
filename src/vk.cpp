@@ -47,13 +47,13 @@ uint32_t findMemoryType(
 
 void createBuffer(
     VkDevice device, 
-    VkPhysicalDevice physicalDevice,
+    VkPhysicalDeviceMemoryProperties memProperties,
     VkBufferUsageFlags usage, 
     VkMemoryPropertyFlags properties,
     VkDeviceSize bufferSize, 
     VkBuffer *buffer, 
     VkDeviceMemory *memory
-    ){
+){
     VkBufferCreateInfo bufferInfo{};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     bufferInfo.size = bufferSize;
@@ -67,8 +67,6 @@ void createBuffer(
 
     VkMemoryRequirements memRequirements;
     vkGetBufferMemoryRequirements(device, *buffer, &memRequirements);
-    VkPhysicalDeviceMemoryProperties memProperties;
-    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
 
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;

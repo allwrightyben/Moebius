@@ -30,21 +30,21 @@ VkVertexInputAttributeDescription* getAttributeDescriptions(uint32_t *attrDescri
 
 void createVertexBuffer(
     VkDevice device, 
-    VkPhysicalDevice physicalDevice,
+    VkPhysicalDeviceMemoryProperties memProperties,
     VkCommandPool commandPool,
     VkQueue transferQueue,
     Vertex* vertices, 
     uint32_t verticesSize,
     VkBuffer *vertexBuffer,
     VkDeviceMemory *vertexBufferMemory
-    ){
+){
     VkDeviceSize bufferSize = sizeof(Vertex)*verticesSize;
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
     createBuffer(
         device,
-        physicalDevice,
+        memProperties,
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
         bufferSize,
@@ -59,7 +59,7 @@ void createVertexBuffer(
 
     createBuffer(
         device, 
-        physicalDevice,
+        memProperties,
         VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
         bufferSize,
@@ -82,7 +82,7 @@ void createVertexBuffer(
 
 void createIndexBuffer(
     VkDevice device, 
-    VkPhysicalDevice physicalDevice,
+    VkPhysicalDeviceMemoryProperties memProperties,
     VkCommandPool transientCommandPool,
     VkQueue transferQueue,
     uint32_t* indices, 
@@ -96,7 +96,7 @@ void createIndexBuffer(
     VkDeviceMemory stagingBufferMemory;
     createBuffer(
         device,
-        physicalDevice,
+        memProperties,
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
         bufferSize,
@@ -111,7 +111,7 @@ void createIndexBuffer(
 
     createBuffer(
         device, 
-        physicalDevice,
+        memProperties,
         VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
         bufferSize,
