@@ -33,6 +33,7 @@ struct VulkanObjects{
     uint32_t swapchainImageCount;
     VkImageView* swapchainImageViews;
     VkRenderPass renderPass; 
+    VkDescriptorSetLayout descriptorSetLayout;
     VkPipelineLayout graphicsPipelineLayout;
     VkPipeline graphicsPipeline;
     VkFramebuffer* swapchainFramebuffers;
@@ -45,6 +46,9 @@ struct VulkanObjects{
     VkDeviceMemory vertexBufferMemory;
     VkBuffer indexBuffer;
     VkDeviceMemory indexBufferMemory;
+    VkBuffer uniformBuffers[MAX_FRAMES_IN_FLIGHT];
+    VkDeviceMemory uniformBuffersMemory[MAX_FRAMES_IN_FLIGHT];
+    void* uniformBuffersMapped[MAX_FRAMES_IN_FLIGHT];
 
     void cleanUp();
 };
@@ -57,7 +61,7 @@ uint32_t findMemoryType(
 
 void createBuffer(
     VkDevice device, 
-    VkPhysicalDeviceMemoryProperties memProperties,
+    VkPhysicalDeviceMemoryProperties* memProperties,
     VkBufferUsageFlags usage, 
     VkMemoryPropertyFlags properties,
     VkDeviceSize bufferSize, 

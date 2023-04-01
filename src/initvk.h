@@ -23,7 +23,10 @@ VkSwapchainKHR createSwapChain(VkDevice device, VkPhysicalDevice physicalDevice,
 VkShaderModule createShaderModule(VkDevice device, char* code, size_t codeSize);
 VkRenderPass createRenderPass(VkDevice device, VkFormat swapChainImageFormat);
 VkPipeline createGraphicsPipeline(VkDevice device, VkPipelineLayout pipelineLayout, VkRenderPass renderPass);
-VkPipelineLayout createGraphicsPipelineLayout(VkDevice device);
+VkPipelineLayout createGraphicsPipelineLayout(
+    VkDevice device,
+    VkDescriptorSetLayout descriptorSetLayout
+);
 VkImageView* createImageViews(
     VkDevice device, 
     VkImage swapchainImages[], 

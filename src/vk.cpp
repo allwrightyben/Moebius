@@ -3,6 +3,11 @@
 #include <cstdio>
 
 void VulkanObjects::cleanUp(){
+    for(int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++){
+        vkDestroyBuffer(device, uniformBuffers[i], nullptr);
+        vkFreeMemory(device, uniformBuffersMemory[i], nullptr);
+    }
+    vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
     vkDestroyBuffer(device, vertexBuffer, nullptr);
     vkFreeMemory(device, vertexBufferMemory, nullptr);
     vkDestroyBuffer(device, indexBuffer, nullptr);
@@ -47,7 +52,7 @@ uint32_t findMemoryType(
 
 void createBuffer(
     VkDevice device, 
-    VkPhysicalDeviceMemoryProperties memProperties,
+    VkPhysicalDeviceMemoryProperties* memProperties,
     VkBufferUsageFlags usage, 
     VkMemoryPropertyFlags properties,
     VkDeviceSize bufferSize, 
@@ -72,7 +77,7 @@ void createBuffer(
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
     allocInfo.memoryTypeIndex = findMemoryType(
-        &memProperties, 
+        memProperties, 
         memRequirements.memoryTypeBits, 
         properties
     );

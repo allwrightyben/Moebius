@@ -10,6 +10,7 @@
 #include "initvk.h"
 #include "draw.h"
 #include "vertex.h"
+#include "descriptor.h"
 
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
@@ -66,7 +67,8 @@ int main(int, char**) {
     vko.swapchainImageViews = createImageViews(vko.device, vko.swapchainImages, vko.swapchainImageCount, vko.surfaceFormat);
 
     vko.renderPass = createRenderPass(vko.device, vko.surfaceFormat.format);
-    vko.graphicsPipelineLayout = createGraphicsPipelineLayout(vko.device);
+    vko.descriptorSetLayout = createDescriptorSetLayout(vko.device);
+    vko.graphicsPipelineLayout = createGraphicsPipelineLayout(vko.device, vko.descriptorSetLayout);
     vko.graphicsPipeline = createGraphicsPipeline(vko.device, vko.graphicsPipelineLayout, vko.renderPass);
 
     vko.swapchainFramebuffers = createFramebuffers(vko.device, vko.swapchainImageViews, vko.swapchainImageCount, vko.renderPass, vko.swapchainExtent);
@@ -87,7 +89,7 @@ int main(int, char**) {
 
     createVertexBuffer(
         vko.device,
-        vko.memProperties,
+        &vko.memProperties,
         vko.transientCommandPool,
         vko.graphicsQueue,
         vertices,
@@ -98,7 +100,7 @@ int main(int, char**) {
 
     createIndexBuffer(
         vko.device,
-        vko.memProperties,
+        &vko.memProperties,
         vko.transientCommandPool,
         vko.graphicsQueue,
         indices,

@@ -30,7 +30,7 @@ VkVertexInputAttributeDescription* getAttributeDescriptions(uint32_t *attrDescri
 
 void createVertexBuffer(
     VkDevice device, 
-    VkPhysicalDeviceMemoryProperties memProperties,
+    VkPhysicalDeviceMemoryProperties* memProperties,
     VkCommandPool commandPool,
     VkQueue transferQueue,
     Vertex* vertices, 
@@ -82,7 +82,7 @@ void createVertexBuffer(
 
 void createIndexBuffer(
     VkDevice device, 
-    VkPhysicalDeviceMemoryProperties memProperties,
+    VkPhysicalDeviceMemoryProperties* memProperties,
     VkCommandPool transientCommandPool,
     VkQueue transferQueue,
     uint32_t* indices, 
