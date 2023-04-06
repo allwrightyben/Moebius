@@ -4,13 +4,16 @@
 #include <GLFW/glfw3.h>
 #include "vk.h"
 #include "initvk.h"
+#include "descriptor.h"
 
 void recordCommandBuffer(
     VkCommandBuffer commandBuffer, 
     VkRenderPass renderPass, 
     VkFramebuffer swapChainFramebuffer, 
     VkExtent2D swapChainExtent,
+    VkPipelineLayout graphicsPipelineLayout,
     VkPipeline graphicsPipeline,
+    const VkDescriptorSet descriptorSet,
     VkBuffer vertexBuffer,
     VkBuffer indexBuffer,
     uint32_t indicesCount
@@ -58,6 +61,8 @@ void recordCommandBuffer(
     scissor.extent = swapChainExtent;
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
+    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
+
     vkCmdDrawIndexed(commandBuffer, indicesCount, 1, 0, 0, 0);
 
     vkCmdEndRenderPass(commandBuffer);
@@ -90,12 +95,17 @@ void drawFrame(
     else{
         vkResetFences(vko->device, 1, &vko->syncObjects[currentFrame].inFlightFence);//Only reset if we are submitting work
         vkResetCommandBuffer(vko->commandBuffers[currentFrame], 0);
+
+        updateUniformBuffer(vko->mappedUniformBuffers[currentFrame], vko->swapchainExtent);
+
         recordCommandBuffer(
             vko->commandBuffers[currentFrame], 
             vko->renderPass, 
             vko->swapchainFramebuffers[swapchainImageIndex], 
             vko->swapchainExtent, 
+            vko->graphicsPipelineLayout,
             vko->graphicsPipeline, 
+            vko->descriptorSets[currentFrame],
             vko->vertexBuffer,
             vko->indexBuffer,
             indicesCount

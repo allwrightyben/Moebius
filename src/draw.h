@@ -10,7 +10,9 @@ void recordCommandBuffer(
     VkRenderPass renderPass, 
     VkFramebuffer swapChainFramebuffer, 
     VkExtent2D swapChainExtent,
+    VkPipelineLayout graphicsPipelineLayout,
     VkPipeline graphicsPipeline,
+    const VkDescriptorSet descriptorSet,
     VkBuffer vertexBuffer,
     VkBuffer indexBuffer,
     uint32_t indicesCount
