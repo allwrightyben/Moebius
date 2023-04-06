@@ -8,8 +8,7 @@
 void recordCommandBuffer(
     VkCommandBuffer commandBuffer, 
     VkRenderPass renderPass, 
-    VkFramebuffer* swapChainFramebuffers, 
-    uint32_t swapChainFramebuffersIndex,
+    VkFramebuffer swapChainFramebuffer, 
     VkExtent2D swapChainExtent,
     VkPipeline graphicsPipeline,
     VkBuffer vertexBuffer,

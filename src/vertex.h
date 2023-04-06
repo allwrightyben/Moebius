@@ -10,9 +10,10 @@ struct Vertex{
 };
 VkVertexInputBindingDescription getBindingDescription();
 VkVertexInputAttributeDescription* getAttributeDescriptions(uint32_t *attrDescriptionsSize);
+
 void createVertexBuffer(
     VkDevice device, 
-    VkPhysicalDeviceMemoryProperties* memProperties,
+    VkPhysicalDevice physicalDevice,
     VkCommandPool commandPool,
     VkQueue transferQueue,
     Vertex* vertices, 
@@ -20,9 +21,10 @@ void createVertexBuffer(
     VkBuffer *vertexBuffer,
     VkDeviceMemory *vertexBufferMemory
 );
+
 void createIndexBuffer(
     VkDevice device, 
-    VkPhysicalDeviceMemoryProperties* memProperties,
+    VkPhysicalDevice physicalDevice,
     VkCommandPool transientCommandPool,
     VkQueue transferQueue,
     uint32_t* indices, 

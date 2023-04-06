@@ -67,7 +67,24 @@ int main(int, char**) {
     vko.swapchainImageViews = createImageViews(vko.device, vko.swapchainImages, vko.swapchainImageCount, vko.surfaceFormat);
 
     vko.renderPass = createRenderPass(vko.device, vko.surfaceFormat.format);
+
     vko.descriptorSetLayout = createDescriptorSetLayout(vko.device);
+    vko.descriptorPool = createDescriptorPool(vko.device, MAX_FRAMES_IN_FLIGHT);
+    VkDescriptorSetLayout* descriptorSetLayouts = (VkDescriptorSetLayout*)malloc(sizeof(VkDescriptorSetLayout)*MAX_FRAMES_IN_FLIGHT);
+    for(int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++){
+        descriptorSetLayouts[i] = vko.descriptorSetLayout;
+    }
+    createUniformBuffers(
+        vko.device,
+        vko.physicalDevice,
+        MAX_FRAMES_IN_FLIGHT,
+        vko.uniformBuffers,
+        vko.uniformBuffersMemory,
+        vko.mappedUniformBuffers
+    );
+    createDescriptorSets(vko.device, vko.descriptorPool, MAX_FRAMES_IN_FLIGHT, descriptorSetLayouts, vko.uniformBuffers, vko.descriptorSets);
+    free(descriptorSetLayouts);
+
     vko.graphicsPipelineLayout = createGraphicsPipelineLayout(vko.device, vko.descriptorSetLayout);
     vko.graphicsPipeline = createGraphicsPipeline(vko.device, vko.graphicsPipelineLayout, vko.renderPass);
 
@@ -76,8 +93,7 @@ int main(int, char**) {
     vko.commandPool = createCommandPool(vko.device, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, &vko.queueFamilyIndices);
     vko.transientCommandPool = createCommandPool(vko.device, VK_COMMAND_POOL_CREATE_TRANSIENT_BIT, &vko.queueFamilyIndices);
 
-
-    createCommandBuffers(vko.device, vko.commandPool, MAX_FRAMES_IN_FLIGHT, vko.commandBuffers);
+        createCommandBuffers(vko.device, vko.commandPool, MAX_FRAMES_IN_FLIGHT, vko.commandBuffers);
 
     for(int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++){
         vko.syncObjects[i] = createSyncObjects(vko.device);
@@ -89,7 +105,7 @@ int main(int, char**) {
 
     createVertexBuffer(
         vko.device,
-        &vko.memProperties,
+        vko.physicalDevice,
         vko.transientCommandPool,
         vko.graphicsQueue,
         vertices,
@@ -100,7 +116,7 @@ int main(int, char**) {
 
     createIndexBuffer(
         vko.device,
-        &vko.memProperties,
+        vko.physicalDevice,
         vko.transientCommandPool,
         vko.graphicsQueue,
         indices,
@@ -108,6 +124,8 @@ int main(int, char**) {
         &vko.indexBuffer,
         &vko.indexBufferMemory
     );
+
+    
     
     uint32_t currentFrame = 0;
 

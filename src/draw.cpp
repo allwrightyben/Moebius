@@ -8,8 +8,7 @@
 void recordCommandBuffer(
     VkCommandBuffer commandBuffer, 
     VkRenderPass renderPass, 
-    VkFramebuffer* swapChainFramebuffers, 
-    uint32_t swapChainFramebuffersIndex,
+    VkFramebuffer swapChainFramebuffer, 
     VkExtent2D swapChainExtent,
     VkPipeline graphicsPipeline,
     VkBuffer vertexBuffer,
@@ -29,7 +28,7 @@ void recordCommandBuffer(
     VkRenderPassBeginInfo renderPassInfo{};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     renderPassInfo.renderPass = renderPass;
-    renderPassInfo.framebuffer = swapChainFramebuffers[swapChainFramebuffersIndex];
+    renderPassInfo.framebuffer = swapChainFramebuffer;
     renderPassInfo.renderArea.offset = {0, 0};
     renderPassInfo.renderArea.extent = swapChainExtent;
     VkClearValue clearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
@@ -94,8 +93,7 @@ void drawFrame(
         recordCommandBuffer(
             vko->commandBuffers[currentFrame], 
             vko->renderPass, 
-            vko->swapchainFramebuffers, 
-            swapchainImageIndex, 
+            vko->swapchainFramebuffers[swapchainImageIndex], 
             vko->swapchainExtent, 
             vko->graphicsPipeline, 
             vko->vertexBuffer,

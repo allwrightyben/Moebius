@@ -34,6 +34,8 @@ struct VulkanObjects{
     VkImageView* swapchainImageViews;
     VkRenderPass renderPass; 
     VkDescriptorSetLayout descriptorSetLayout;
+    VkDescriptorPool descriptorPool;
+    VkDescriptorSet descriptorSets[MAX_FRAMES_IN_FLIGHT];
     VkPipelineLayout graphicsPipelineLayout;
     VkPipeline graphicsPipeline;
     VkFramebuffer* swapchainFramebuffers;
@@ -41,6 +43,7 @@ struct VulkanObjects{
     VkCommandPool transientCommandPool;
     VkCommandBuffer commandBuffers[MAX_FRAMES_IN_FLIGHT];
     SynchronisationObjects syncObjects[MAX_FRAMES_IN_FLIGHT];
+
     VkPhysicalDeviceMemoryProperties memProperties;
     VkBuffer vertexBuffer;
     VkDeviceMemory vertexBufferMemory;
@@ -48,20 +51,14 @@ struct VulkanObjects{
     VkDeviceMemory indexBufferMemory;
     VkBuffer uniformBuffers[MAX_FRAMES_IN_FLIGHT];
     VkDeviceMemory uniformBuffersMemory[MAX_FRAMES_IN_FLIGHT];
-    void* uniformBuffersMapped[MAX_FRAMES_IN_FLIGHT];
+    void* mappedUniformBuffers[MAX_FRAMES_IN_FLIGHT];
 
     void cleanUp();
 };
 
-uint32_t findMemoryType(
-    VkPhysicalDeviceMemoryProperties *memProperties, 
-    uint32_t typeFilter, 
-    VkMemoryPropertyFlags propertyFlags
-);
-
 void createBuffer(
     VkDevice device, 
-    VkPhysicalDeviceMemoryProperties* memProperties,
+    VkPhysicalDevice physicalDevice,
     VkBufferUsageFlags usage, 
     VkMemoryPropertyFlags properties,
     VkDeviceSize bufferSize, 
@@ -76,4 +73,10 @@ void copyBuffer(
     VkBuffer srcBuffer, 
     VkBuffer dstBuffer, 
     VkDeviceSize size
+);
+
+uint32_t findMemoryType(
+    VkPhysicalDevice physicalDevice,
+    uint32_t typeFilter, 
+    VkMemoryPropertyFlags propertyFlags
 );

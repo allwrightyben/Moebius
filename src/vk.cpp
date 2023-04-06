@@ -7,6 +7,7 @@ void VulkanObjects::cleanUp(){
         vkDestroyBuffer(device, uniformBuffers[i], nullptr);
         vkFreeMemory(device, uniformBuffersMemory[i], nullptr);
     }
+    vkDestroyDescriptorPool(device, descriptorPool, nullptr);
     vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
     vkDestroyBuffer(device, vertexBuffer, nullptr);
     vkFreeMemory(device, vertexBufferMemory, nullptr);
@@ -36,12 +37,15 @@ void VulkanObjects::cleanUp(){
 }
 
 uint32_t findMemoryType(
-    VkPhysicalDeviceMemoryProperties *memProperties, 
+    VkPhysicalDevice physicalDevice,
     uint32_t typeFilter, 
     VkMemoryPropertyFlags propertyFlags
-    ) {
-    for (uint32_t i = 0; i < memProperties->memoryTypeCount; i++) {
-        if ((typeFilter & (1 << i)) && (memProperties->memoryTypes[i].propertyFlags & propertyFlags) == propertyFlags) {
+){
+    VkPhysicalDeviceMemoryProperties memProperties;
+    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
+
+    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+        if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & propertyFlags) == propertyFlags) {
             return i;
         }
     } 
@@ -52,7 +56,7 @@ uint32_t findMemoryType(
 
 void createBuffer(
     VkDevice device, 
-    VkPhysicalDeviceMemoryProperties* memProperties,
+    VkPhysicalDevice physicalDevice,
     VkBufferUsageFlags usage, 
     VkMemoryPropertyFlags properties,
     VkDeviceSize bufferSize, 
@@ -77,7 +81,7 @@ void createBuffer(
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
     allocInfo.memoryTypeIndex = findMemoryType(
-        memProperties, 
+        physicalDevice,
         memRequirements.memoryTypeBits, 
         properties
     );
